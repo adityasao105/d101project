@@ -69,7 +69,7 @@ testing_data$prediction <- prediction
 
 cm <- table(prediction, testing_data$price_range)
 rpart_accuracy <- sum(cm[1], cm[6], cm[11], cm[16]) / sum(cm[1:16])
-accuracy
+rpart_accuracy
 
 #Naive Bayes below:
 training_data$price_range <- factor(training_data$price_range, levels=c(0, 1, 2, 3), labels=c("Low", "Medium", "High", "Luxury"))
@@ -80,5 +80,5 @@ pred<-predict(nb_model,testing_data)
 
 cm <- table(pred$class, testing_data$price_range)
 nb_mod_accuracy <- sum(cm[1], cm[6], cm[11], cm[16]) / sum(cm[1:16])
-accuracy
+nb_mod_accuracy
 
