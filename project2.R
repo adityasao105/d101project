@@ -3,12 +3,16 @@ library(rpart.plot)
 library(rsample)
 library(pheatmap)
 library(ggplot2)
+library(klaR)
 # setwd("/Users/adityasao/data101/project2")
+
+#data discovery below:
 set.seed(1234)
 training_csv <- read.csv("phone_train.csv")
 prediction_csv <- read.csv("phone_test.csv")
 split <- initial_split(training_csv, prop = 0.7)
 training_data <- training(split)
+testing_data<-testing(split)
 head(training_csv)
 
 cor_mat <- cor(training_data)
@@ -53,16 +57,28 @@ ggplot(training_csv,aes(x=price_range,y=battery_power))+geom_boxplot() #higher b
 ggplot(training_csv,aes(x=price_range,y=px_width))+geom_boxplot() #higher width higher price
 ggplot(training_csv,aes(x=price_range,y=px_height))+geom_boxplot() #higher height higher price
 
+#rpart things below:
 
-mse<-c() #how do i get mse for catagorical values?
-# for(CP in seq(from=0.00001, to=0.001,0.00001)){
-# tree=rpart(price_range~three_g+ram+battery_power+px_width+px_height,data=training_data,method="class",control=rpart.control(cp=CP))
-# pred<-predict(tree,training_data,type="class")
-# 
-# }
+control <- rpart.control(cp=5e-4, minsplit=2)
+# tree <- rpart(price_range ~ ., data=training_data, method="class")
+tree <- rpart(price_range ~ ram + battery_power + px_height + px_width, data=training_data, method="class", control=control)
+# rpart.plot(tree)
 
+prediction <- rpart.predict(tree, testing_data, type="class")
+testing_data$prediction <- prediction
 
+cm <- table(prediction, testing_data$price_range)
+rpart_accuracy <- sum(cm[1], cm[6], cm[11], cm[16]) / sum(cm[1:16])
+accuracy
 
+#Naive Bayes below:
+training_data$price_range <- factor(training_data$price_range, levels=c(0, 1, 2, 3), labels=c("Low", "Medium", "High", "Luxury"))
+testing_data$price_range <- factor(testing_data$price_range, levels=c(0, 1, 2, 3), labels=c("Low", "Medium", "High", "Luxury"))
 
+nb_model<-NaiveBayes(price_range ~ ram + battery_power + px_height + px_width, data=training_data)
+pred<-predict(nb_model,testing_data)
 
+cm <- table(pred$class, testing_data$price_range)
+nb_mod_accuracy <- sum(cm[1], cm[6], cm[11], cm[16]) / sum(cm[1:16])
+accuracy
 
